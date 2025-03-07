@@ -1,5 +1,5 @@
 Титов И.К.
-
+//Коментарий 1
 
 #include <iostream>
 #include <string>
@@ -7,7 +7,7 @@
 #include <random>
 #include <iomanip>
 
-using namespace std;
+//коментарий 2
 
 class MarkovChain {
     const int m = 8;
