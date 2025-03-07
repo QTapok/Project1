@@ -1,1 +1,134 @@
 Титов И.К.
+
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <random>
+#include <iomanip>
+
+using namespace std;
+
+class MarkovChain {
+    const int m = 8;
+    vector<string> s;
+    double p[8][8];
+    int f[8];
+    random_device rd;
+    mt19937 rnd;
+    uniform_int_distribution<int> dist;
+    int k;
+
+public:
+    // Constructor
+    MarkovChain() : rnd(rd()), dist(0, m - 1) {
+        s = { "s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8" };
+        double temp[8][8] = {
+            { 0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125},
+            { 0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125},
+            { 0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125},
+            { 0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125},
+            { 0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125},
+            { 0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125},
+            { 0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125},
+            { 0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125}
+        };
+        copy(&temp[0][0], &temp[0][0] + 8 * 8, &p[0][0]);
+        fill(begin(f), end(f), 0);
+        k = dist(rnd);
+    }
+
+    string GenerState() {
+        string st = "";
+        uniform_real_distribution<double> real_dist(0.0, 1.0);
+        double x = real_dist(rnd);
+        double q = 0.0;
+        for (int j = 0; j < m; j++) {
+            if ((x > q) && (x <= q + p[k][j])) {
+                st = s[j];
+                k = j;
+                f[j]++;
+                break;
+            }
+            q += p[k][j];
+        }
+        return st;
+    }
+
+    string GetFreqs() {
+        string buf = "\nЧастоты появления состояний:\n";
+        for (int i = 0; i < m; i++) {
+            buf += "s" + to_string(i + 1) + " - " + to_string(f[i]) + "\n";
+        }
+        return buf;
+    }
+};
+
+class SourceEncoder {
+public:
+    string SimpleEncoding(string _S) {
+        string c = ""; // кодовое слово
+        if (_S == "s1") c = "000";
+        else if (_S == "s2") c = "001";
+        else if (_S == "s3") c = "010";
+        else if (_S == "s4") c = "011";
+        else if (_S == "s5") c = "100";
+        else if (_S == "s6") c = "101";
+        else if (_S == "s7") c = "110";
+        else if (_S == "s8") c = "111";
+        return c;
+    }
+};
+
+class SourceDecoder {
+    int errNum; // Число ошибок
+
+public:
+    // Constructor
+    SourceDecoder() : errNum(0) {}
+
+    // простой декодер
+    string SimpleDecoding(string _c) {
+        string s = "";
+        if (_c == "000") s = "s1";
+        else if (_c == "001") s = "s2";
+        else if (_c == "010") s = "s3";
+        else if (_c == "011") s = "s4";
+        else if (_c == "100") s = "s5";
+        else if (_c == "101") s = "s6";
+        else if (_c == "110") s = "s7";
+        else if (_c == "111") s = "s8";
+        else { s = "><"; errNum++; } // Знак ошибки
+        return s;
+    }
+
+    string GetErrorNumber() {
+        return "Кол-во ошибок декодирования: " + to_string(errNum);
+    }
+};
+
+int main() {
+    setlocale(LC_ALL, "");
+    MarkovChain r;
+    SourceEncoder sEnc;
+    SourceDecoder sDec;
+
+    cout << "Введите число ген. символов: ";
+    int n;
+    cin >> n;
+
+    string src = "";
+    string enc = "";
+    string dec = "";
+    cout << "|№    |ИС     |КИС    |ДИС    |\n";
+    for (int i = 0; i < n; i++) {
+        src = r.GenerState();
+        enc = sEnc.SimpleEncoding(src);
+        dec = sDec.SimpleDecoding(enc);
+        cout << "|" << setw(5) << i + 1 << "|" << setw(7) << src << "|" << setw(7) << enc << "|" << setw(7) << dec << "|\n";
+    }
+    cout << r.GetFreqs();
+    cout << sDec.GetErrorNumber() << endl;
+
+    return 0;
+}
